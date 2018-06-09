@@ -1,0 +1,83 @@
+* meltdown
+
+This is a demonstration of [[http://meltdownattack.com/][the Meltdown attack]] in C++.
+
+** Theory
+
+Modern CPUs usually come with pipeline and out-of-order execution for
+better performance, i.e. CPUs will actually execute instructions ahead
+of time, before they can decide whether this instruction should be
+executed.  When they find they are wrong, they discard the results.
+
+As a side effect, this will lead to some microarchitectural
+changes. The relevant page will be cached. Normally, these changes
+should be invisible to programs.
+
+** Meltdown
+
+However, [Lipp2018meltdown] published a novel side-channel attack
+based on out-of-order execution: by measuring cache hit/miss time, we
+can decide whether a specific memory address is cached.  If the memory
+address is linked to a secret, we can reveal that secret easily.
+
+A typical Meltdown attack consists of three steps.
+
+1. The value of the attacked memory location is loaded into a register, 
+   but it's inaccessible to the attacker.
+2. The attacker accesses the cache line based on the value of that
+   register.
+3. The attacker uses Flush+Reload to determine which page is cached,
+   and reveals the secret.
+
+** Proof-of-Concept
+
+This section describes a demonstration of Meltdown.
+
+*** Environment
+
+Debian 9 with (unpatched) Linux version 4.9.0-3 with KASLR disabled on
+Intel i5-6200U where TSX is not available.
+
+*** See it melts down
+
+Firstly, we need some additional information.
+
+#+BEGIN_SRC
+ksqsf@veritas:~/oh-my-meltdown$ sudo ./leak 
+I'm 8417  My secret is at 55BF6A3D9E68
+phys = 179657e68
+#+END_SRC
+
+Here I make it compute some hash for the string to prevent the secret
+from being swapped.
+
+Now, just dump the physical memory.
+
+#+BEGIN_SRC
+ksqsf@veritas:~/oh-my-meltdown$ ./exploit 179657e68
+Welcome to Meltdown!
+Will begin dumping physical memory starting from 0x0000000179657E68,
+whose virtual address is 0xFFFF880179657E68.
+Press Ctrl-C to interrupt.
+"There's a little devil inside all of us." Beneath their manufactured perception - their artificial reality - is a writhing, twisted mess of dread.
+I'm %d  My secret is at %lX
+phys = %lx
+...
+#+END_SRC
+
+It clearly shows that an unpriviledged user program can read arbitrary
+physical memory.
+
+** Remarks
+
++ The signal handler approach is extremely inefficient when KASLR is 
+  enabled, which effectively makes it unacceptable for attackers.
++ Even *unsafe* Rust can completely avoid Meltdown (the signal handler
+  approach), because ~setjmp~ & ~longjmp~ are not available, which are
+  essential to the signal handler approach.
+
+** References
+
++ [Lipp2018meltdown] :: /Meltdown/, /Lipp, et al./, Jan. 2018
++ IAIK/meltdown :: Demonstation of meltdown [[https://github.com/IAIK/meltdown][IAIK/meltdown]].
++ pagemap.txt :: Linux documentation ~/Documentation/vm/pagemap.txt~.
