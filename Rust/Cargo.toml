@@ -1,0 +1,7 @@
+[package]
+name = "meltdown-rs"
+version = "0.1.0"
+authors = ["_rika <i@ksqsf.moe>"]
+
+[dependencies]
+libc = "0.2"

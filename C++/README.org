@@ -72,9 +72,10 @@ physical memory.
 
 + The signal handler approach is extremely inefficient when KASLR is 
   enabled, which effectively makes it unacceptable for attackers.
-+ Even *unsafe* Rust can completely avoid Meltdown (the signal handler
-  approach), because ~setjmp~ & ~longjmp~ are not available, which are
-  essential to the signal handler approach.
++ Even *unsafe* Rust prevent Meltdown (the signal handler
+  approach) if you use exceptions (which is the default behavior),
+  because ~setjmp~ & ~longjmp~ are not available, which are essential
+  to the signal handler approach.
 
 ** References
 

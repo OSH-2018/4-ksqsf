@@ -1,0 +1,16 @@
+* meltdown-rs
+
+~meltdown-rs~ is a demonstration of [[http://meltdownattack.com/][the Meltdown attack]] in Rust.
+
+** Assumption
+
++ rustc 1.27.0-nightly (2018-05-10)
++ x86_64
++ no TSX
++ should use exception, instead of ~abort~
+
+** Notes
+
+This implementation is full of unsafe hacks and dark magic... I can't
+yet fully understand ~panic!~ and ~catch_unwind~.  Besides that, this
+implementation is quite straightforward.
